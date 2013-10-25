@@ -1,0 +1,8 @@
+#!/bin/sh -ev
+# Download and install espak and pyttsx
+sudo apt-get install -y espeak
+sudo apt-get install python-setuptools
+git clone https://github.com/parente/pyttsx.git
+cd pyttsx
+sudo python ./setup.py install
+cd ..
