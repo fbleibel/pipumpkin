@@ -1,7 +1,9 @@
 #!/bin/sh -ev
+# This installs the various tools needed to run pipumpkin server
+# on the rasbperry pi
 # Download and install espak and pyttsx
 sudo apt-get install -y espeak
-sudo apt-get install python-setuptools
+sudo apt-get install -y python-setuptools
 git clone https://github.com/parente/pyttsx.git
 cd pyttsx
 sudo python ./setup.py install
