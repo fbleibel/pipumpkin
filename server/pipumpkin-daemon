@@ -1,0 +1,22 @@
+#!/usr/bin/env python
+import daemon
+import os
+import sys
+
+sys.path.insert(0, os.path.abspath("."))
+from pipumpkin import webinterface
+
+PIDFILE = "/var/log/pipumpkin.pid"
+
+def main():
+    if os.path.exists(PIDFILE):
+        return
+
+    with daemon.DaemonContext():
+        with open(PIDFILE, "w") as f:
+            f.write(str(os.getpid()))
+        webinterface.main()
+    os.remove(PIDFILE)
+
+if __name__ == "__main__":
+    main()
