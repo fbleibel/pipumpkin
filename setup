@@ -8,3 +8,8 @@ git clone https://github.com/parente/pyttsx.git
 cd pyttsx
 sudo python ./setup.py install
 cd ..
+wget https://pypi.python.org/packages/source/p/python-daemon/python-daemon-1.5.5.tar.gz
+tar -xzf python-daemon-1.5.5.tar.gz
+cd python-daemon-1.5.5
+sudo python ./setup.py install
+cd ..
