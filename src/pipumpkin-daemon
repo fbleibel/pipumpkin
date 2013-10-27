@@ -2,6 +2,7 @@
 """
 This is a daemon-style wrapper around PiPumpkin.main()
 """
+import argparse
 import daemon
 import os
 import sys
@@ -13,6 +14,15 @@ PIDFILE = "/var/log/pipumpkin.pid"
 
 def main():
     """Use a PID lock file
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("action")
+    args = parser.parse_args()
+    if args.action == "start":
+        start()
+    
+def start():
+    """
     """
     if os.path.exists(PIDFILE):
         print "%s is already started! Remove %s" % (sys.argv[0], PIDFILE)
@@ -29,3 +39,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
