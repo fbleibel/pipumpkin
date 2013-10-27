@@ -1,4 +1,14 @@
 #!/usr/bin/env python
+### BEGIN INIT INFO
+# Provides:          pipupmkin
+# Required-Start:    $remote_fs $syslog $networking
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Simple script to start a program at boot
+# Description:       A simple script which will start / stop a program a boot / shutdown.
+### END INIT INFO
+
 """
 This is a daemon-style wrapper around PiPumpkin.main()
 """
