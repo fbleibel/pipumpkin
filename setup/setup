@@ -1,0 +1,6 @@
+# This installs the various tools needed to run pipumpkin
+# on the rasbperry pi.
+./apt-packages
+./pyttsx
+./python-daemon
+./tweepy-source
