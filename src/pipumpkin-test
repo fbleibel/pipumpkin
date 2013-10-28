@@ -2,10 +2,19 @@
 """
 Launch the pipumpking application
 """
+import logging
 import sys
 import os
 sys.path.append(os.path.abspath("."))
 from pipumpkin.pumpkin import PiPumpkin
 
+# Log output to current directory/pipumpkin.log
+logger = logging.getLogger("pipumpkin")
+logger.setLevel(logging.INFO)
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+handler = logging.FileHandler("pipumpkin.log")
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
 pumpkin = PiPumpkin()
-pumpkin.main()
+pumpkin.run()
