@@ -26,8 +26,14 @@ class PiPumpkin(object):
         self.pidfile_path =  '/var/run/testdaemon/testdaemon.pid'
         self.pidfile_timeout = 5
         
-        self.feed = TweeterFeed()
         self.log = logging.getLogger("pipumpkin")
+        
+        # Valid properties accepted by pyttsx and a method to cast them from a
+        # string
+        self.valid_properties = {"rate": int, "volume": float, "voice": str}
+        
+        # Tweeter feed for the current user's account
+        self.feed = TweeterFeed()
         # Keep track of all the sentences to be said in a priority queue, with
         # elements tuples of the form (scheduled_at, message).
         self.sentence_queue = Queue.PriorityQueue()
@@ -39,6 +45,9 @@ class PiPumpkin(object):
                                                self.sentence_queue,
                                                self.reply_queue)
         self.speech_engine = pyttsx.init("espeak")
+        self.property_defaults = dict(
+            (prop, self.speech_engine.getProperty(prop))
+            for prop in self.valid_properties.iterkeys())
         
     def _get_ifconfig_addrs(self):
         """Returns the list of all ipv4 addresses found in "ifconfig"
@@ -86,18 +95,36 @@ class PiPumpkin(object):
 
         # Look for tweets to speak
         try:
-            speak_at, text = self.sentence_queue.get(block=False)
-            # Start speaking tweets if their scheduled time has passed
-            
-            if speak_at > now:
-                # This tweet is scheduled into the future. Put it back into the
-                # queue.
-                self.sentence_queue.put(candidate)
-            else:
-                self.log.info("Speaking: {0}".format(text))
-                self.speech_engine.say(text)
+            speak_at, text, flags = self.sentence_queue.get(block=False)
         except Queue.Empty:
-            pass
+            return
+            
+        # Start speaking tweets if their scheduled time has passed
+        if speak_at > now:
+            # This tweet is scheduled into the future. Put it back into the
+            # queue (there's no peek() method on PriorityQueue).
+            self.sentence_queue.put(candidate)
+            return
+            
+        self.log.info("Speaking: {0}".format(text))
+                    
+        # Convert properties into valid pyttsx inputs
+        pyttsx_flags = {}
+        for key, value in flags.iteritems():
+            if key not in self.valid_properties:
+                continue
+            cast = self.valid_properties[key]
+            try:
+                value = cast(value)
+            except ValueError:
+                continue
+            pyttsx_flags[key] = value
+        
+        # Set properties for the next utterance
+        for key, default in self.property_defaults.iteritems():
+            value = pyttsx_flags.get(key, default)
+            self.speech_engine.setProperty(key, value)
+        self.speech_engine.say(text)
         
     def send_alive(self):    
         """Send an "alive" message to the tweeter account.
