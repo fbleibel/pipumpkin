@@ -15,12 +15,13 @@ This is a daemon-style wrapper around PiPumpkin.main()
 import argparse
 import daemon
 import os
+import signal
 import sys
 
 sys.path.append(os.path.abspath("."))
 from pipumpkin.pumpkin import PiPumpkin
 
-PIDFILE = "/var/log/pipumpkin.pid"
+PIDFILE = "/var/run/pipumpkin.pid"
 
 def main():
     """Use a PID lock file
@@ -30,6 +31,8 @@ def main():
     args = parser.parse_args()
     if args.action == "start":
         start()
+    elif args.action == "stop":
+        stop()
     
 def start():
     """
@@ -45,6 +48,20 @@ def start():
         pipumpkin = PiPumpkin()
         pipumpkin.main()
 
+    os.remove(PIDFILE)
+
+def stop():
+    """
+    """
+    if not os.path.exists(PIDFILE):
+        print "Could not find {0}! Has the daemon been started?".format(PIDFILE)
+    with open(PIDFILE, "r") as file:
+        pid = int(file.read())
+    try:    
+        os.kill(pid, signal.SIGKILL)
+        print "Killed {0}".format(pid)
+    except OSError:
+        print "Could not find PID {0}. Removing {1}".format(pid, PIDFILE)
     os.remove(PIDFILE)
 
 if __name__ == "__main__":

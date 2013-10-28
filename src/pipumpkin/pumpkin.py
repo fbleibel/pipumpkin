@@ -3,7 +3,7 @@ A talking pumpkin!
 """
 import re
 import time
-from datetime import datetime
+from datetime import datetime, timedela
 import urllib2
 import subprocess
 
@@ -29,19 +29,33 @@ class PiPumpkin(object):
         return addrs
         
     def main(self):
+        """Run in an infinite loop - this process will usually be killed with
+        SIGKILL.
         """
-        """
+        self.last_alive_message = datetime.now()
         while True:
-            # Find the IP of the raspberry pi as seen behind the current NAT
-            try:
-                public_ip = urllib2.urlopen('https://enabledns.com/ip').read()
-            except:
-                public_ip = "Unknown"
-            addrs = self._get_ifconfig_addrs()
-            addrs.append(public_ip)
-            status = "Time: {0}, addresses: {1}".format(
-                datetime.now(), ", ".join(addrs))
-            retval = self.feed.tweet_alive(status)
-            print "Tweet 'alive' status, success = %s" % retval
-            time.sleep(30)
+            self.loop()
+
+    def loop(self):
+        """Main application loop. Runs continuously.
+        """
+        now = datetime.now()
+        if now - self.last_alive_message > timedelta(minutes=1):
+            self.send_alive()
+            self.last_alive_message = now
+        
+    def send_alive(self):    
+        """Send alive messages every minute
+        """
+        # Find the IP of the raspberry pi as seen behind the current NAT
+        try:
+            public_ip = urllib2.urlopen('https://enabledns.com/ip').read()
+        except:
+            public_ip = "Unknown"
+        addrs = self._get_ifconfig_addrs()
+        addrs.append(public_ip)
+        status = "Time: {0}, addresses: {1}".format(
+            datetime.now(), ", ".join(addrs))
+        retval = self.feed.tweet_alive(status)
+        print "Tweet 'alive' status, success = %s" % retval
 
