@@ -27,15 +27,18 @@ from pipumpkin.pumpkin import PiPumpkin
 def main():
     """Use a PID lock file
     """
-    app = PiPupmkin()
+    app = PiPumpkin()
     logger = logging.getLogger("pipumpkin")
     logger.setLevel(logging.INFO)
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    if not os.path.exists("/var/log/pipumpkin"):
+        os.mkdir("/var/log/pipumpkin")
     handler = logging.FileHandler("/var/log/pipumpkin/daemon.log")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     
     daemon_runner = runner.DaemonRunner(app)
+    daemon_runner.daemon_context.files_preserve = [handler.stream]
     daemon_runner.do_action()
 
 if __name__ == "__main__":

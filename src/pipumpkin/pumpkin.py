@@ -23,8 +23,11 @@ class PiPumpkin(object):
         """
         """
         # Daemon configuration
-        self.pidfile_path =  '/var/run/testdaemon/testdaemon.pid'
+        self.pidfile_path =  '/var/run/pipumpkin.pid'
         self.pidfile_timeout = 5
+        self.stdin_path = '/dev/null'
+        self.stdout_path = '/dev/tty'
+        self.stderr_path = '/dev/tty'
         
         self.log = logging.getLogger("pipumpkin")
         
