@@ -81,15 +81,27 @@ class TweeterFeed(object):
         referred to via since_id. If since_id is None, returns all
         mentioned tweets. May raise FeedError if there was an error retrieving
         the mentions, e.g. if the twitter rate limiting is hit.
+        
+        
+        Use the user_timeline instead of the mentions_timeline as the rate limit
+        is a lot higher (300 calls/15min = 1 call every 3s).
         """
+        screen_name = self.get_screen_name()
         if since_id:
-            cursor = tweepy.Cursor(self.api.mentions_timeline,
+            cursor = tweepy.Cursor(self.api.user_timeline,
                                    trim_user=True,
                                    since_id=since_id)
         else:
-            cursor = tweepy.Cursor(self.api.mentions_timeline, trim_user=True)
+            cursor = tweepy.Cursor(self.api.user_timeline, trim_user=True)
         try:
-            result = list(cursor.items())
+            result = list()
+            for tweet in cursor.items():
+                # This will filter out all tweets which are mentioning the
+                # current user but not posted as a reply to another post.
+                if (tweet.in_reply_to_screen_name and
+                    tweet.in_reply_to_screen_name.lower() == screen_name and
+                    tweet.in_reply_to_status_id is None):
+                    result.append(tweet)
         except tweepy.TweepError as e:
             self.log.error(traceback.format_exc())
             raise FeedError(str(e))

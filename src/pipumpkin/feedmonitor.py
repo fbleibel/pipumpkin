@@ -34,7 +34,7 @@ class TweeterFeedMonitor(threading.Thread):
         self.reply_queue = reply_queue
         # Space out the twitter API calls to avoid hitting rate limiting
         # This is slighty higher than 
-        self.mention_check_delay = timedelta(seconds=65)
+        self.mention_check_delay = timedelta(seconds=5)
         # The id of the latest mention found.
         self.last_mention_id = None
         # Set to True to stop this thread gracefully.
@@ -110,10 +110,6 @@ class TweeterFeedMonitor(threading.Thread):
         # Go through all mentions in chrononogical order
         ignored = 0
         for tweet in reversed(new_mentions):
-            if tweet.in_reply_to_status_id is not None:
-                # Ignore replies to other statuses, which happens e.g. when
-                # replying to one of our own statuses.
-                continue
             self.log.info("Parsing tweet: {0.text}".format(tweet))
             self.parse_mention(tweet)
         
@@ -132,6 +128,9 @@ class TweeterFeedMonitor(threading.Thread):
         # scheduling.
         scheduled_at = tweet.created_at.replace(tzinfo=timezone.utc)
         scheduled_at = scheduled_at.astimezone(timezone.Local)
+        # Convert back to a naive, non-timezone-aware date
+        scheduled_at = scheduled_at.replace(tzinfo=None)
+        self.log.info("Sent at {0} local time".format(scheduled_at))
         
         # Remove any extraneous whitespaces
         text = text.strip()

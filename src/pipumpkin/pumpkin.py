@@ -103,7 +103,7 @@ class PiPumpkin(object):
         if speak_at > now:
             # This tweet is scheduled into the future. Put it back into the
             # queue (there's no peek() method on PriorityQueue).
-            self.sentence_queue.put(candidate)
+            self.sentence_queue.put((speak_at, text, flags))
             return
             
         self.log.info("Speaking: {0}".format(text))
