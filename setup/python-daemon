@@ -2,5 +2,8 @@
 wget https://pypi.python.org/packages/source/p/python-daemon/python-daemon-1.5.5.tar.gz
 tar -xzf python-daemon-1.5.5.tar.gz
 cd python-daemon-1.5.5
-sudo python ./setup.py install
+echo "Warning: you must change the code of python-daemon before installing."
+echo "Read http://stackoverflow.com/questions/13069634/python-daemon-and-systemd-service"
+echo "sudo python ./setup.py install"
 cd ..
+
