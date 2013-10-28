@@ -1,0 +1,5 @@
+#!/bin/sh -ev
+git clone https://github.com/smontanaro/pylockfile.git pylockfile-source
+cd pylockfile-source
+sudo python setup.py install
+cd ..

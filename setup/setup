@@ -4,3 +4,4 @@
 ./pyttsx
 ./python-daemon
 ./tweepy-source
+./lockfile
