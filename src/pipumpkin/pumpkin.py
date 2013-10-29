@@ -115,8 +115,10 @@ class PiPumpkin(object):
         # Convert properties into valid pyttsx inputs
         pyttsx_flags = {}
         for key, value in flags.iteritems():
+            # Discard unsupported properties
             if key not in self.valid_properties:
                 continue
+            # Transform the value from a string into the right datatype
             cast = self.valid_properties[key]
             try:
                 value = cast(value)
@@ -128,6 +130,8 @@ class PiPumpkin(object):
         for key, default in self.property_defaults.iteritems():
             value = pyttsx_flags.get(key, default)
             self.speech_engine.setProperty(key, value)
+        
+        # Say it!
         self.speech_engine.say(text)
         
     def send_alive(self):    
