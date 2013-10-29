@@ -26,8 +26,9 @@ class PiPumpkin(object):
         self.pidfile_path =  '/var/run/pipumpkin.pid'
         self.pidfile_timeout = 5
         self.stdin_path = '/dev/null'
-        self.stdout_path = '/dev/tty'
-        self.stderr_path = '/dev/tty'
+        # There must be a better place to put these files...
+        self.stdout_path = '/var/log/pipumpkin/stdout'
+        self.stderr_path = '/var/log/pipumpkin/stderr'
         
         self.log = logging.getLogger("pipumpkin")
         
