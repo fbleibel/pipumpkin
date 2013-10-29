@@ -67,6 +67,8 @@ class PiPumpkin(object):
         self.property_defaults = dict(
             (prop, self.speech_engine.getProperty(prop))
             for prop in self.valid_properties.iterkeys())
+        # The default voice is None, fix this
+        self.property_defaults["voice"] = "english"
         
         self.last_alive_message = datetime.now()
         self.speech_engine.startLoop(False)
