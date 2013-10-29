@@ -34,7 +34,7 @@ class TweeterFeedMonitor(threading.Thread):
         self.reply_queue = reply_queue
         # Throttle the twitter API calls to avoid hitting rate limiting
         # This is slighty higher than 
-        self.mention_check_delay = timedelta(seconds=10)
+        self.mention_check_delay = timedelta(seconds=20)
         # The id of the latest mention found.
         self.last_mention_id = None
         # Set to True to stop this thread gracefully.
