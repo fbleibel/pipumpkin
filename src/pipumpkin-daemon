@@ -22,8 +22,10 @@ import signal
 import sys
 
 # Set this to your own timezone. For some reason I couldn't make it work otherwise,
-# my timezone was always UTC at boot :/
+# my timezone was always UTC when this script is called...
+import time
 os.environ["TZ"] = "Asia/Singapore"
+time.tzset()
 
 sys.path.append(os.path.abspath("."))
 from pipumpkin.pumpkin import PiPumpkin

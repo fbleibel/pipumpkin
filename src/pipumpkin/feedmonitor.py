@@ -130,7 +130,6 @@ class TweeterFeedMonitor(threading.Thread):
         scheduled_at = scheduled_at.astimezone(timezone.Local)
         # Convert back to a naive, non-timezone-aware date
         scheduled_at = scheduled_at.replace(tzinfo=None)
-        self.log.info("Sent at {0} local time".format(scheduled_at))
         
         # Remove any extraneous whitespaces
         text = text.strip()
