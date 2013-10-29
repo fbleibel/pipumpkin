@@ -32,6 +32,19 @@ class PiPumpkin(object):
         
         self.log = logging.getLogger("pipumpkin")
         
+    def _get_ifconfig_addrs(self):
+        """Returns the list of all ipv4 addresses found in "ifconfig"
+        """
+        process = subprocess.Popen("ifconfig", stdout=subprocess.PIPE)
+        stdout, _ = process.communicate()
+        process.wait()
+        addrs = re.findall("inet addr:(\d+\.\d+\.\d+\.\d+)\s", stdout)
+        return addrs
+        
+    def run(self):
+        """Run in an infinite loop - this process will usually be killed with
+        SIGKILL.
+        """
         # Valid properties accepted by pyttsx and a method to cast them from a
         # string
         self.valid_properties = {"rate": int, "volume": float, "voice": str}
@@ -48,24 +61,13 @@ class PiPumpkin(object):
         self.feed_monitor = TweeterFeedMonitor(self.feed,
                                                self.sentence_queue,
                                                self.reply_queue)
-        self.speech_engine = pyttsx.init("espeak")
+        # Start up our speech engine
+        self.speech_engine = pyttsx.init()
+        # Remember default values for the engine properties.
         self.property_defaults = dict(
             (prop, self.speech_engine.getProperty(prop))
             for prop in self.valid_properties.iterkeys())
         
-    def _get_ifconfig_addrs(self):
-        """Returns the list of all ipv4 addresses found in "ifconfig"
-        """
-        process = subprocess.Popen("ifconfig", stdout=subprocess.PIPE)
-        stdout, _ = process.communicate()
-        process.wait()
-        addrs = re.findall("inet addr:(\d+\.\d+\.\d+\.\d+)\s", stdout)
-        return addrs
-        
-    def run(self):
-        """Run in an infinite loop - this process will usually be killed with
-        SIGKILL.
-        """
         self.last_alive_message = datetime.now()
         self.speech_engine.startLoop(False)
         self.alive_timeout = timedelta(minutes=1)
