@@ -67,7 +67,6 @@ class IMAPMonitor(threading.Thread):
         self.log.info("Connecting to IMAP server {0}".format(self.server))
         self.imap = imaplib.IMAP4_SSL(self.server)
         self.imap.login(self.user, self.password)
-        self.imap.select(self.mailbox)
         self.log.info("Connected, looking for unread messages in {0}".format(
                                                                 self.mailbox))
     
@@ -75,8 +74,7 @@ class IMAPMonitor(threading.Thread):
         """Main thread loop: check for mentions to speak, check for replies to
         send.
         """
-        import sys
-        sys.stdout.write(".")
+        self.imap.select(self.mailbox)
         typ, unseen = self.imap.search(None, "(UNSEEN)")
         if typ != "OK":
             self.log.error("Imap search returned {0}".format(typ))
@@ -84,7 +82,6 @@ class IMAPMonitor(threading.Thread):
         unseen = unseen[0].split()
         if not unseen:
             return
-        
         self.log.info("{0} unread messages found".format(len(unseen)))
         for num in unseen:
             typ, data = self.imap.fetch(num, "(RFC822)")
@@ -129,16 +126,15 @@ class IMAPMonitor(threading.Thread):
         
         scheduled_at = datetime.now()
         if "Date" in message:
-            scheduled_at = dateutil.parser.parse(unicode(message["Date"]))
+            scheduled_at = dateutil.parser.parse(message["Date"])
         # Convert back to a naive, non-timezone-aware date, assuming it was in
         # local time to begin with.
         scheduled_at = scheduled_at.replace(tzinfo=None)
         
-        # Parse for arguments
-        flags = dict(re.findall("(\w+):(\S+)", text))
+        # Parse for embedded arguments (convert keys to lowercase)
+        flags = dict(map(str.lower, re.findall("(\w+):(\S+)", text)))
         # And remove the arguments found from the text
         text = re.sub("(\w+):(\S+)", "", text)
-        flags = map(str.lower, flags)
         
         if "delay" in flags:
             delay = None
