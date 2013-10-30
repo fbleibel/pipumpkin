@@ -9,6 +9,7 @@ import json
 import logging
 import Queue
 import re
+import socket
 import time
 import threading
 
@@ -51,15 +52,26 @@ class IMAPMonitor(threading.Thread):
         # Rate limiting
         time.sleep(self.poll_delay.seconds)
         
+        # Try reconnecting if a socket error occurs (connection lost, etc)
+        while not self.stop:
+            try:
+                self._connect_imap()
+                while not self.stop:
+                    self.loop()
+            except (socket.error, imaplib.IMAP4_SSL.error), e:
+                self.log.error("An error occurred: {0}".format(e))
+                # Don't try to reconnect too often
+                time.sleep(self.poll_delay.seconds)
+    
+    def _connect_imap(self):
+        """Connect to the specified imap server
+        """
         self.log.info("Connecting to IMAP server {0}".format(self.server))
         self.imap = imaplib.IMAP4(self.server)
         self.imap.login(self.user, self.password)
         self.imap.select(self.mailbox)
         self.log.info("Connected, looking for unread messages in {0}".format(
                                                                 self.mailbox))
-        
-        while not self.stop:
-            self.loop()
     
     def loop(self):
         """Main thread loop: check for mentions to speak, check for replies to
