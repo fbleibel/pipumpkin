@@ -145,7 +145,6 @@ class PiPumpkin(object):
             self.email_feed.queue.put((speak_at, text, flags))
             return
             
-        self.log.info(repr(text))
         # Convert properties into valid pyttsx inputs
         pyttsx_flags = {}
         for key, value in flags.iteritems():
