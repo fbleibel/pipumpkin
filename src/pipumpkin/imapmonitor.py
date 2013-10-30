@@ -132,7 +132,7 @@ class IMAPMonitor(threading.Thread):
         scheduled_at = scheduled_at.replace(tzinfo=None)
         
         # Parse for embedded arguments (convert keys to lowercase)
-        flags = re.findall("(\w+):(\S+)"
+        flags = re.findall("(\w+):(\S+)")
         flags = dict((str.lower(k), v) for k, v in flags)
         # And remove the arguments found from the text
         text = re.sub("(\w+):(\S+)", "", text)
