@@ -67,7 +67,7 @@ class IMAPMonitor(threading.Thread):
         """Connect to the specified imap server
         """
         self.log.info("Connecting to IMAP server {0}".format(self.server))
-        self.imap = imaplib.IMAP4(self.server)
+        self.imap = imaplib.IMAP4_SSL(self.server)
         self.imap.login(self.user, self.password)
         self.imap.select(self.mailbox)
         self.log.info("Connected, looking for unread messages in {0}".format(
