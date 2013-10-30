@@ -51,9 +51,11 @@ class IMAPMonitor(threading.Thread):
         # Rate limiting
         time.sleep(self.poll_delay.seconds)
         
-        self.log.info("Looking for unread messages in {0}".format(self.mailbox))
-        self.imap = imaplib.IMAP4("zimbra")
+        self.log.info("Connecting to IMAP server {0}", format(self.server))
+        self.imap = imaplib.IMAP4(self.server)
         self.imap.login(self.user, self.password)
+        self.log.info("Connected, looking for unread messages in {0}".format(
+                                                                self.mailbox))
         
         while not self.stop:
             self.loop()
