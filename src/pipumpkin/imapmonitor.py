@@ -3,7 +3,8 @@ Module for the TwitterFeedMonitor class.
 """
 import base64
 from datetime import datetime, timedelta
-import dateutil
+import dateutil.parser
+import email
 import imaplib
 import json
 import logging
@@ -49,9 +50,6 @@ class IMAPMonitor(threading.Thread):
         * Looks for unread emails
         * Sends elements added to the reply queue.
         """
-        # Rate limiting
-        time.sleep(self.poll_delay.seconds)
-        
         # Try reconnecting if a socket error occurs (connection lost, etc)
         while not self.stop:
             try:
@@ -77,6 +75,8 @@ class IMAPMonitor(threading.Thread):
         """Main thread loop: check for mentions to speak, check for replies to
         send.
         """
+        import sys
+        sys.stdout.write(".")
         typ, unseen = self.imap.search(None, "(UNSEEN)")
         if typ != "OK":
             self.log.error("Imap search returned {0}".format(typ))
@@ -87,7 +87,7 @@ class IMAPMonitor(threading.Thread):
         
         self.log.info("{0} unread messages found".format(len(unseen)))
         for num in unseen:
-            typ, data = M.fetch(num, "(RFC822)")
+            typ, data = self.imap.fetch(num, "(RFC822)")
             if typ != "OK":
                 self.log.error("Imap fetch returned {0}".format(typ))
                 return
@@ -96,9 +96,9 @@ class IMAPMonitor(threading.Thread):
             self.parse_email(message)
         
         # Limit the rate of imap queries
-        time.sleep(self.poll_delay)
+        time.sleep(self.poll_delay.seconds)
     
-    def _get_plain_text(message):
+    def _get_plain_text(self, message):
         """Get text/plain parts in a message and add them together to form a
         whole sentence (usually there'll only be one) 
         """
@@ -112,7 +112,7 @@ class IMAPMonitor(threading.Thread):
     
         if message.is_multipart():
             for part in message.get_payload():
-                result += get_plain_text(part)
+                result += self._get_plain_text(part)
     
         return result
 
@@ -122,12 +122,14 @@ class IMAPMonitor(threading.Thread):
         """
         self.log.info("Parsing message {0[Subject]} from {0[From]}".format(
                                                                     message))
-        text = get_plain_text(message)
+        text = self._get_plain_text(message)
         if not text:
             self.log.warning("Message was empty!")
             return
         
-        scheduled_at = dateutil.parse(message["Date"])
+        scheduled_at = datetime.now()
+        if "Date" in message:
+            scheduled_at = dateutil.parser.parse(unicode(message["Date"]))
         # Convert back to a naive, non-timezone-aware date, assuming it was in
         # local time to begin with.
         scheduled_at = scheduled_at.replace(tzinfo=None)

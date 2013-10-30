@@ -62,9 +62,7 @@ class PiPumpkin(object):
         # The default voice is None, fix this
         self.property_defaults["voice"] = "english"
         
-        self.last_alive_message = datetime.now()
         self.speech_engine.startLoop(False)
-        self.alive_timeout = timedelta(minutes=1)
         self.feed_monitor.start()
         # Later on, maybe we could be stop this program in a nicer fashion than
         # killing it?
@@ -82,18 +80,6 @@ class PiPumpkin(object):
         """Main application loop. Runs continuously. Take messages from the
         queue and speak them.
         """
-        now = datetime.now()
-        
-        # Send "alive" messages periodically
-        if now - self.last_alive_message > self.alive_timeout:
-            # Adjust the periodicity of "I'm alive" messages; if they are
-            # sucessfully sent, use a longer timeout than otherwise.
-            if self.feed_monitor.send_alive():
-                self.alive_timeout = timedelta(minutes=30)
-            else:
-                self.alive_timeout = timedelta(minutes=1)
-            self.last_alive_message = now
-
         # Look for tweets to speak
         try:
             speak_at, text, flags = self.sentence_queue.get(block=False)
