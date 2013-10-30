@@ -54,6 +54,7 @@ class IMAPMonitor(threading.Thread):
         self.log.info("Connecting to IMAP server {0}".format(self.server))
         self.imap = imaplib.IMAP4(self.server)
         self.imap.login(self.user, self.password)
+        self.imap.select(self.mailbox)
         self.log.info("Connected, looking for unread messages in {0}".format(
                                                                 self.mailbox))
         
@@ -64,7 +65,6 @@ class IMAPMonitor(threading.Thread):
         """Main thread loop: check for mentions to speak, check for replies to
         send.
         """
-        self.imap.select(mailbox)
         typ, unseen = self.imap.search(None, "(UNSEEN)")
         if typ != "OK":
             self.log.error("Imap search returned {0}".format(typ))
