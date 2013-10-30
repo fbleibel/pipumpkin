@@ -55,21 +55,39 @@ class PiPumpkin(object):
         process.wait()
         addrs = re.findall("inet addr:(\d+\.\d+\.\d+\.\d+)\s", stdout)
         return addrs
+    
+    def _create_speech_engine(self):
+        """
+        """
+        # Create a new speech engine
+        self.speech_engine = pyttsx.init()
+        
+        # Keep track of the number of utterances/sentences to know if we are
+        # speaking. Unfortunatell engine.isBusy() is not reliable, see
+        # https://github.com/parente/pyttsx/issues/13
+        # This is to find out if we should run .iterate() as fast as possible.
+        self.uttering = 0
+        
+        def incr_utter(_):
+            self.uttering += 1
+        def decr_utter(_, __):
+            self.uttering -= 1
+        self.speech_engine.connect("started-utterance", incr_utter)
+        self.speech_engine.connect("finished-utterance", decr_utter)
         
     def run(self):
         """Run in an infinite loop - this process will usually be killed with
         SIGKILL.
         """
-        # Start up our speech engine
-        self.speech_engine = pyttsx.init()
-
+        self._create_speech_engine()
+        
         # Remember default values for the engine properties.
         self.property_defaults = dict(
             (prop, self.speech_engine.getProperty(prop))
             for prop in self.valid_properties.iterkeys())
             
         # I find the default rate hard to understand with espeak...
-        self.property_defaults["rate"] = 150
+        self.property_defaults["rate"] = 135
 
         # The default voice is None, fix this
         self.property_defaults["voice"] = "english"
@@ -85,10 +103,15 @@ class PiPumpkin(object):
         
         self.log.info("Initialisation complete, starting main loop")
         self.speech_engine.startLoop(False)
+        
         try:
             # Note: you must kill (e.g. Ctrl+C) pipumpkin to terminate it.
             while True:
-                self.loop()
+                # Can't rely on engine.isBusy() unfortunately
+                if self.uttering == 0:
+                    # Don't take too much processor time if we're not speaking                    
+                    time.sleep(0.5)
+                    self.loop()
                 self.speech_engine.iterate()
         finally:
             self.email_feed.stop = True
@@ -110,6 +133,7 @@ class PiPumpkin(object):
         
         # Look for text to speak
         try:
+            # (datetime, unicode, dict)
             speak_at, text, flags = self.email_feed.queue.get(block=False)
         except Queue.Empty:
             return
@@ -121,12 +145,13 @@ class PiPumpkin(object):
             self.email_feed.queue.put((speak_at, text, flags))
             return
             
+        self.log.info(repr(text))
         # Convert properties into valid pyttsx inputs
         pyttsx_flags = {}
         for key, value in flags.iteritems():
             cast = self.valid_properties.get(key)
-            # Discard unsupported properties
             if not cast:
+                # Discard unsupported properties
                 continue
             # Transform the value from a string into the right datatype
             try:
@@ -141,6 +166,7 @@ class PiPumpkin(object):
             self.speech_engine.setProperty(key, value)
         
         # Say it!
-        self.log.info("Speaking: {0}, flags={1}".format(text, pyttsx_flags))
+        safe_text = text.encode(errors='replace')
+        self.log.info("Speaking: {0}, flags={1}".format(safe_text, pyttsx_flags))
         self.speech_engine.say(text)
         
