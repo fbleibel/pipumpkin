@@ -10,8 +10,7 @@ import subprocess
 import time
 import urllib2
 
-from pipumpkin.tweeter import TweeterFeed
-from pipumpkin.feedmonitor import TweeterFeedMonitor
+from pipumpkin.imapmonitor import IMAPMonitor
 
 class PiPumpkin(object):
     """
@@ -49,18 +48,11 @@ class PiPumpkin(object):
         # string
         self.valid_properties = {"rate": int, "volume": float, "voice": str}
         
-        # Tweeter feed for the current user's account
-        self.feed = TweeterFeed()
         # Keep track of all the sentences to be said in a priority queue, with
-        # elements tuples of the form (scheduled_at, message).
+        # elements tuples of the form (scheduled_at, message, flags).
         self.sentence_queue = Queue.PriorityQueue()
-        # The feed monitor can also send twitter replies as they are placed into
-        # the reply queue. These are tuples (tweet_id, reply_contents).
-        self.reply_queue = Queue.Queue()
         # Use a feed monitor which will be started as a separate thread.
-        self.feed_monitor = TweeterFeedMonitor(self.feed,
-                                               self.sentence_queue,
-                                               self.reply_queue)
+        self.feed_monitor = IMAPMonitor(self.sentence_queue)
         # Start up our speech engine
         self.speech_engine = pyttsx.init()
         # Remember default values for the engine properties.
@@ -85,7 +77,8 @@ class PiPumpkin(object):
             self.feed_monitor.join()
 
     def loop(self):
-        """Main application loop. Runs continuously.
+        """Main application loop. Runs continuously. Take messages from the
+        queue and speak them.
         """
         now = datetime.now()
         
@@ -93,7 +86,7 @@ class PiPumpkin(object):
         if now - self.last_alive_message > self.alive_timeout:
             # Adjust the periodicity of "I'm alive" messages; if they are
             # sucessfully sent, use a longer timeout than otherwise.
-            if self.send_alive():
+            if self.feed_monitor.send_alive():
                 self.alive_timeout = timedelta(minutes=30)
             else:
                 self.alive_timeout = timedelta(minutes=1)
@@ -112,8 +105,6 @@ class PiPumpkin(object):
             self.sentence_queue.put((speak_at, text, flags))
             return
             
-        self.log.info("Speaking: {0}".format(text))
-                    
         # Convert properties into valid pyttsx inputs
         pyttsx_flags = {}
         for key, value in flags.iteritems():
@@ -134,20 +125,5 @@ class PiPumpkin(object):
             self.speech_engine.setProperty(key, value)
         
         # Say it!
+        self.log.info("Speaking: {0}, flags={1}".format(text, pyttsx_flags))
         self.speech_engine.say(text)
-        
-    def send_alive(self):    
-        """Send an "alive" message to the tweeter account.
-        """
-        # Find the IP of the raspberry pi as seen behind the current NAT
-        try:
-            public_ip = urllib2.urlopen('https://enabledns.com/ip').read()
-        except:
-            public_ip = "Unknown"
-        addrs = self._get_ifconfig_addrs()
-        addrs.append(public_ip)
-        status = "Time: {0}, addresses: {1}".format(
-            datetime.now(), ", ".join(addrs))
-        retval = self.feed.tweet_alive(status)
-        self.log.info("Tweet 'alive' status, success = %s" % retval)
-
