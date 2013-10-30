@@ -37,7 +37,7 @@ class IMAPMonitor(threading.Thread):
         self.time_code_map = {"s": "seconds", "m": "minutes", "h": "hours"}
         with open(IMAP_CONFIG, "r") as file:
             imap_config = json.load(file)
-        self.user = imap_config["username"]
+        self.user = imap_config["user"]
         self.password = imap_config["password"]
         self.server = imap_config["server"]
         self.mailbox = imap_config["mailbox"]
