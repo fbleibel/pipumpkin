@@ -223,7 +223,7 @@ class EmailFeed(threading.Thread):
                               for k, v in flags.iteritems())
         
         self.log.info("Queued {0} characters for {1}".format(len(text),
-                                                             scheduled_at)
+                                                             scheduled_at))
         self.queue.put((scheduled_at, text, flags))
         
     def send_heartbeat(self, contents):
