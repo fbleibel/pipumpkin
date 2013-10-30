@@ -1,0 +1,9 @@
+#!/bin/sh -ev
+MODULE=python-dateutil-1.5
+URL=http://labix.org/download/python-dateutil/$MODULE.tar.gz
+
+wget $URL
+tar -xzf $MODULE.tar.gz
+cd $MODULE
+sudo python setup.py install
+cd ..
