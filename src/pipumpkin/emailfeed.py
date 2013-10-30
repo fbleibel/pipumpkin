@@ -222,10 +222,8 @@ class EmailFeed(threading.Thread):
         flags_str = ", ".join("{0}={1}".format(k, v)
                               for k, v in flags.iteritems())
         
-        # Not all characters can be converted back from unicode to ascii. Take
-        # that into account when printing logs.
-        safe_text = text.encode(errors='replace')
-        self.log.info("Queued for {0}: '{1}'".format(scheduled_at, safe_text))
+        self.log.info("Queued {0} characters for {1}".format(len(text),
+                                                             scheduled_at)
         self.queue.put((scheduled_at, text, flags))
         
     def send_heartbeat(self, contents):
