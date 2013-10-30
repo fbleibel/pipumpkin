@@ -62,7 +62,6 @@ class PiPumpkin(object):
         # The default voice is None, fix this
         self.property_defaults["voice"] = "english"
         
-        self.speech_engine.startLoop(False)
         self.feed_monitor.start()
         # Later on, maybe we could be stop this program in a nicer fashion than
         # killing it?
@@ -70,10 +69,8 @@ class PiPumpkin(object):
         try:
             while True:
                 self.loop()
-                self.speech_engine.iterate()
         finally:
             self.feed_monitor.stop = True
-            self.speech_engine.endLoop()
             self.feed_monitor.join()
 
     def loop(self):
@@ -115,3 +112,5 @@ class PiPumpkin(object):
         # Say it!
         self.log.info("Speaking: {0}, flags={1}".format(text, pyttsx_flags))
         self.speech_engine.say(text)
+        self.speech_engine.runAndWait()
+
