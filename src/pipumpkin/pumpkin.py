@@ -38,7 +38,7 @@ class PiPumpkin(object):
             self.config = json.load(file)
             
         # Send heartbeat messages regularly
-        self.heartbeat_period = timedelta(minutes=2)
+        self.heartbeat_period = timedelta(minutes=30)
         
         # Valid properties accepted by pyttsx and a method to cast them from a
         # string.
