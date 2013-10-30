@@ -87,7 +87,7 @@ class PiPumpkin(object):
             return
             
         # Start speaking tweets if their scheduled time has passed
-        if speak_at > now:
+        if speak_at > datetime.now():
             # This tweet is scheduled into the future. Put it back into the
             # queue (there's no peek() method on PriorityQueue).
             self.sentence_queue.put((speak_at, text, flags))
