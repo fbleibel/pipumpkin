@@ -1,4 +1,0 @@
-git clone https://github.com/tweepy/tweepy.git tweepy-source
-cd tweepy-source
-sudo python setup.py install
-cd ..
