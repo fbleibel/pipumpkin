@@ -15,18 +15,6 @@ Set-up
 * Check-out this repository on the pi filesystem
 * Create a folder (label) in your gmail account.
 * Install the requirements; see helper scripts in 'setup'
-* Create a json file with your mail server account details
-
-/etc/pipumpkin-email-config
----------------------------
-Example contents:
-.code-block:
-  {
-    "user":"your-name@gmail.com",
-    "password":"your-password",
-    "imap-server":"imap.gmail.com",
-    "imap-mailbox": "pipumpkin",
-    "smtp-server": "smtp.gmail.com"
-  }
+* Create a json file with your mail server account details: copy the file "pipumpkin-email-config" to /etc/pipumpkin-email-config
 
 
