@@ -1,0 +1,7 @@
+{
+    "user":"your-name@gmail.com",
+    "password":"your-password",
+    "imap-server":"imap.gmail.com",
+    "imap-mailbox": "pipumpkin",
+    "smtp-server": "smtp.gmail.com"
+}
