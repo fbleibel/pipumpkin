@@ -12,7 +12,7 @@
 """
 This is a daemon-style wrapper around PiPumpkin.main().
 Suggested set-up: symlink this file to /etc/init.d/pipumpkin, and use
-sudo update-rc.d daemon
+'sudo update-rc.d pipumpkin defaults' to register as a start-up daemon.
 """
 import argparse
 from daemon import runner
@@ -21,8 +21,8 @@ import os
 import signal
 import sys
 
-# Set this to your own timezone. For some reason I couldn't make it work otherwise,
-# my timezone was always UTC when this script is called on the raspberry pi...
+# Set this to your own timezone. For some reason I couldn't make it work any other way,
+# and my timezone was always UTC when this script was called on the raspberry pi...
 import time
 os.environ["TZ"] = "Asia/Singapore"
 time.tzset()
@@ -31,18 +31,25 @@ sys.path.append(os.path.abspath("."))
 from pipumpkin.pumpkin import PiPumpkin
         
 def main():
-    """Use a PID lock file
+    """Use a PID lock file.
     """
     app = PiPumpkin()
+    
+    # Set-up file logger
     logger = logging.getLogger("pipumpkin")
     logger.setLevel(logging.INFO)
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    
+    # Create directory for log if it doesn't exist
     if not os.path.exists("/var/log/pipumpkin"):
         os.mkdir("/var/log/pipumpkin")
+    
+    # Add file handler
     handler = logging.FileHandler("/var/log/pipumpkin/daemon.log")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     
+    # Start daemon
     daemon_runner = runner.DaemonRunner(app)
     daemon_runner.daemon_context.files_preserve = [handler.stream]
     daemon_runner.do_action()
